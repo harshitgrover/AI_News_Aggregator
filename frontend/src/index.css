@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #0f172a;
+  --primary-hover: #334155;
+  --bg-main: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --danger: #ef4444;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* Glassmorphism / Panels */
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger {
+  background: white;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-danger:hover { background: var(--danger); color: white; }
+
+/* Inputs */
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  color: var(--text-main);
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.input-field:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
+/* Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Navbar */
+.navbar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-links { display: flex; gap: 30px; align-items: center; }
+.nav-link { 
+  color: var(--text-muted); 
+  text-decoration: none; 
+  font-weight: 500; 
+  transition: color 0.2s;
+}
+.nav-link:hover, .nav-link.active { color: var(--primary); }
+
+/* Article Card */
+.article-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.article-card:hover { 
+  transform: translateY(-2px); 
+  box-shadow: var(--shadow); 
+}
+.article-source { 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+  color: var(--text-muted); 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.article-title { 
+  margin: 0 0 12px 0; 
+  font-size: 1.1rem; 
+  line-height: 1.4;
+}
+.article-summary { 
+  color: var(--text-muted); 
+  font-size: 0.95rem; 
+  line-height: 1.6; 
+  flex-grow: 1;
+}
+
+/* List Items (CRUD) */
+.crud-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+/* Auth Specific */
+.login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+.login-card { width: 100%; max-width: 400px; padding: 40px; }
+.login-header h2 { margin: 0 0 10px 0; color: var(--primary); }
+.login-header p { margin: 0 0 30px 0; color: var(--text-muted); }
+.login-form { display: flex; flex-direction: column; gap: 20px; }
+.input-group { position: relative; }
+.input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.input-field.with-icon { padding-left: 45px; }
+.full-width { width: 100%; }
+.error-box { background: #fee2e2; color: var(--danger); padding: 12px; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 0.9rem; }
+.toggle-auth { text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 0.9rem; }
+.toggle-link { color: var(--primary); font-weight: 600; cursor: pointer; }
+.toggle-link:hover { text-decoration: underline; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 1s linear infinite; }

@@ -8,6 +8,10 @@
     <style>
         body { font-family: 'Inter', -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; max-width: 800px; margin: 0 auto; }
         h1 { color: #38bdf8; text-align: center; margin-bottom: 2rem; }
+        .form-container { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { background: #0ea5e9; }
         .article { background: #1e293b; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 12px; border: 1px solid #334155; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .article:hover { transform: translateY(-4px); border-color: #38bdf8; }
         .article h2 { margin-top: 0; color: #e2e8f0; font-size: 1.3rem; line-height: 1.4; }
@@ -16,47 +20,58 @@
         .article a:hover { background: rgba(56, 189, 248, 0.2); }
         .loading { text-align: center; color: #94a3b8; font-style: italic; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        #newsletter-result { background: #0f172a; border: 2px solid #38bdf8; padding: 20px; border-radius: 8px; display: none; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <h1>🚀 AI News Aggregator</h1>
-    <div id="news-container">
-        <p class="loading">Scraping the latest TechCrunch news...</p>
+    
+    <div class="form-container">
+        <h3 style="margin-top: 0;">Create Custom AI Newsletter</h3>
+        <input type="text" id="topicInput" placeholder="Enter topics (e.g., Robotics, LLMs, Space)">
+        <textarea id="sourcesInput" placeholder="Enter custom RSS Feed URLs (one per line, e.g., https://techcrunch.com/feed/)" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; height: 80px; font-family: inherit;"></textarea>
+        <input type="email" id="emailInput" placeholder="Your Email Address">
+        <button onclick="generateNewsletter()">Generate & Email Newsletter</button>
     </div>
 
+    <div id="newsletter-result"></div>
+
     <script>
-        // Standard Vanilla JS fetching data from our backend API!
-        async function fetchNews() {
+        async function generateNewsletter() {
+            const topic = document.getElementById('topicInput').value;
+            const email = document.getElementById('emailInput').value;
+            const customSources = document.getElementById('sourcesInput').value;
+            
+            if(!topic || !email) {
+                alert("Please enter a topic and an email!");
+                return;
+            }
+            
+            const resultDiv = document.getElementById('newsletter-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p class="loading">🧠 AI is scraping sources and writing the newsletter. This might take 30-60 seconds...</p>';
+            
             try {
-                const response = await fetch('/api/news');
-                const result = await response.json();
-                
-                const container = document.getElementById('news-container');
-                container.innerHTML = ''; // Clear the loading text
-                
-                // Loop through the data and render it
-                result.data.forEach(article => {
-                    const articleDiv = document.createElement('div');
-                    articleDiv.className = 'article';
-                    
-                    articleDiv.innerHTML = `
-                        <div style="display: inline-block; background: #38bdf8; color: #0f172a; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px;">
-                            ${article.source_name}
-                        </div>
-                        <h2>${article.title}</h2>
-                        <p>${article.summary}</p>
-                        <a href="${article.link}" target="_blank">Read Full Article &rarr;</a>
-                    `;
-                    container.appendChild(articleDiv);
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topics: topic, email: email, custom_sources: customSources })
                 });
-            } catch (error) {
-                console.error("Failed to fetch news:", error);
-                document.getElementById('news-container').innerHTML = '<p>Failed to load news. Ensure backend is running.</p>';
+                
+                const data = await response.json();
+                
+                if(data.status === 'success') {
+                    resultDiv.innerHTML = data.html;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: #ef4444;">Error: ${data.detail || 'Failed to generate'}</p>`;
+                }
+            } catch(e) {
+                resultDiv.innerHTML = `<p style="color: #ef4444;">Network Error: ${e.message}</p>`;
             }
         }
         
         // Execute on load
-        fetchNews();
+        // fetchNews();
     </script>
 </body>
 </html>

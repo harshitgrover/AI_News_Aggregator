@@ -4,3 +4,9 @@ feedparser
 fastapi
 uvicorn
 sqlalchemy
+sentence-transformers
+numpy
+google-genai
+python-dotenv
+PyJWT
+psycopg2-binary
