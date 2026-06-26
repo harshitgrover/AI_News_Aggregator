@@ -97,14 +97,7 @@ def startup_event():
     except Exception:
         db.rollback()
         
-    try:
-        from seed_mock_data import seed_data
-        seed_data()
-        with open("seed_log.txt", "w") as f:
-            f.write("Seeding successful!")
-    except Exception as e:
-        with open("seed_log.txt", "w") as f:
-            f.write(f"Seeding failed: {str(e)}")
+
         
     db.close()
 
