@@ -11,6 +11,12 @@ Instead of manually checking multiple websites, users input "Topics" they care a
 
 ---
 
+## 🔗 Live Demo
+
+**Frontend URL:** [https://[YOUR-RAILWAY-FRONTEND-URL]](https://your-railway-url.up.railway.app)
+*(Note: Replace with your actual live Railway URL)*
+
+---
 ## ✨ Key Features
 
 - **🤖 AI-Powered Filtering:** Uses local HuggingFace `sentence-transformers` (`all-MiniLM-L6-v2`) to calculate Cosine Similarity between user topics and scraped articles, ensuring extreme relevance without keyword-matching flaws.
