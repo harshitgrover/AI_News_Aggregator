@@ -113,4 +113,3 @@ npm run dev
 For an exhaustive, beginner-friendly deep dive into exactly how the code works, the architecture, and the specific purpose of every library used, please read the included [Detailed_Code_Explanation.md](./Detailed_Code_Explanation.md). This file serves as the ultimate master-guide and interview prep document for the project!
 
 ---
-*Built with ❤️ and AI.*
