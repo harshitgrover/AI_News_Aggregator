@@ -116,14 +116,7 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
 def health_check():
     return {"status": "ok"}
 
-@router.get("/api/seed")
-def trigger_seed():
-    from seed_mock_data import seed_data
-    try:
-        seed_data()
-        return {"status": "success", "message": "Database seeded!"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+
 
 @router.get("/api/community/sources")
 def get_popular_community_sources(db: Session = Depends(get_db)):
