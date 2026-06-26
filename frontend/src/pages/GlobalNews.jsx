@@ -6,7 +6,7 @@ import Comments from '../components/Comments';
 export default function GlobalNews() {
   const [articles, setArticles] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
-  const [categories, setCategories] = useState(['all', 'tech', 'ai', 'politics', 'geopolitics', 'gaming']);
+  const [categories, setCategories] = useState(['all']);
   const [userVotes, setUserVotes] = useState({});
   const [userId, setUserId] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
