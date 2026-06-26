@@ -114,18 +114,18 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
 
 @router.get("/api/test_mail")
 def test_mail_sync():
-    import traceback
-    try:
-        from app.services.mailer import send_newsletter
-        import os
-        admin = os.environ.get("ADMIN_EMAIL", "atharvconsul45@gmail.com")
-        success = send_newsletter(admin, "Test from Railway", "<p>Testing SMTP from Railway</p>")
-        if success:
-            return {"status": "success", "message": f"Successfully sent test email to {admin}"}
-        else:
-            return {"status": "error", "message": "send_newsletter returned False. Check SENDER_EMAIL and SENDER_PASSWORD."}
-    except Exception as e:
-        return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
+    import os
+    keys = list(os.environ.keys())
+    sender_email = os.environ.get("SENDER_EMAIL")
+    sender_pass = os.environ.get("SENDER_PASSWORD")
+    
+    return {
+        "status": "env_check",
+        "has_sender_email": sender_email is not None,
+        "has_sender_password": sender_pass is not None,
+        "sender_email_value": sender_email,
+        "all_keys": keys
+    }
 
 @router.get("/api/health")
 def health_check():
