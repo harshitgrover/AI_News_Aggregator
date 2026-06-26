@@ -50,14 +50,31 @@ export default function GlobalNews() {
   };
 
   const fetchArticles = async (category) => {
-    let query = supabase.from('articles').select(`*, sources!inner(category, name)`).order('created_at', { ascending: false }).limit(50);
+    let query = supabase.from('articles').select(`*, sources!inner(category, name)`).order('created_at', { ascending: false }).limit(100);
     
     if (category !== 'all') {
       query = query.eq('sources.category', category);
     }
     
     const { data } = await query;
-    if (data) setArticles(data);
+    if (data) {
+      const sortedData = [...data].sort((a, b) => {
+        const scoreA = (a.upvotes || 0) - (a.downvotes || 0);
+        const scoreB = (b.upvotes || 0) - (b.downvotes || 0);
+        
+        // Age in hours
+        const ageHoursA = (new Date() - new Date(a.created_at)) / (1000 * 60 * 60);
+        const ageHoursB = (new Date() - new Date(b.created_at)) / (1000 * 60 * 60);
+        
+        // HackerNews ranking formula: Score / (Age + 2)^1.5
+        const rankA = scoreA / Math.pow((ageHoursA + 2), 1.5);
+        const rankB = scoreB / Math.pow((ageHoursB + 2), 1.5);
+        
+        return rankB - rankA; // Sort descending (highest rank first)
+      });
+      
+      setArticles(sortedData);
+    }
   };
 
   const handleVote = async (id, targetVote) => {
