@@ -92,7 +92,16 @@ def background_generate_and_send(user_id: str, user_email: str, topic_keywords: 
 @router.post("/api/generate")
 def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(verify_user), db: Session = Depends(get_db)):
     user_id = user["sub"]
-    user_email = user.get("email", "unknown@example.com")
+    
+    # Try to get email from JWT root or user_metadata
+    user_email = user.get("email")
+    if not user_email and "user_metadata" in user:
+        user_email = user["user_metadata"].get("email")
+        
+    # Ultimate fallback to ensure email delivery works during testing!
+    if not user_email or user_email == "unknown@example.com":
+        import os
+        user_email = os.environ.get("ADMIN_EMAIL", "atharvconsul45@gmail.com")
     
     user_topics = db.query(models.Topic).filter(models.Topic.user_id == user_id).all()
     topic_keywords = ", ".join([t.keyword for t in user_topics])
