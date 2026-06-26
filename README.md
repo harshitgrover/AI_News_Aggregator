@@ -13,7 +13,7 @@ Instead of manually checking multiple websites, users input "Topics" they care a
 
 ## 🔗 Live Demo
 
-**Frontend URL:** [https://[YOUR-RAILWAY-FRONTEND-URL]](https://your-railway-url.up.railway.app)
+**Frontend URL:** https://ainewsaggregator-production-3ff3.up.railway.app
 *(Note: Replace with your actual live Railway URL)*
 
 ---
