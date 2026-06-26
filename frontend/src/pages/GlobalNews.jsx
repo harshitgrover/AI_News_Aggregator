@@ -6,6 +6,7 @@ import Comments from '../components/Comments';
 export default function GlobalNews() {
   const [articles, setArticles] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [categories, setCategories] = useState(['all', 'tech', 'ai', 'politics', 'geopolitics', 'gaming']);
   const [userVotes, setUserVotes] = useState({});
   const [userId, setUserId] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
@@ -59,20 +60,26 @@ export default function GlobalNews() {
     const { data } = await query;
     if (data) {
       const sortedData = [...data].sort((a, b) => {
-        const scoreA = (a.upvotes || 0) - (a.downvotes || 0);
-        const scoreB = (b.upvotes || 0) - (b.downvotes || 0);
+        // Add 1 baseline score to prevent 0-vote items from completely breaking the recency tie-breaker
+        const scoreA = (a.upvotes || 0) - (a.downvotes || 0) + 1;
+        const scoreB = (b.upvotes || 0) - (b.downvotes || 0) + 1;
         
-        // Ensure UTC parsing by appending 'Z' and prevent negative ages
-        const ageHoursA = Math.max(0, (new Date() - new Date(a.created_at + 'Z')) / (1000 * 60 * 60));
-        const ageHoursB = Math.max(0, (new Date() - new Date(b.created_at + 'Z')) / (1000 * 60 * 60));
+        // Bulletproof UTC parsing
+        const dateA = new Date(a.created_at.endsWith('Z') || a.created_at.includes('+') ? a.created_at : a.created_at + 'Z');
+        const dateB = new Date(b.created_at.endsWith('Z') || b.created_at.includes('+') ? b.created_at : b.created_at + 'Z');
+        
+        const ageHoursA = Math.max(0, (new Date() - dateA) / (1000 * 60 * 60));
+        const ageHoursB = Math.max(0, (new Date() - dateB) / (1000 * 60 * 60));
         
         // HackerNews ranking formula: Score / (Age + 2)^1.5
         const rankA = scoreA / Math.pow((ageHoursA + 2), 1.5);
         const rankB = scoreB / Math.pow((ageHoursB + 2), 1.5);
         
         // Handle possible NaN values gracefully
-        if (isNaN(rankA)) return 1;
-        if (isNaN(rankB)) return -1;
+        if (isNaN(rankA) || isNaN(rankB)) {
+            // Fallback to strict recency sort
+            return dateB - dateA;
+        }
         
         return rankB - rankA; // Sort descending (highest rank first)
       });
@@ -80,6 +87,22 @@ export default function GlobalNews() {
       setArticles(sortedData);
     }
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/topics/performance`);
+        if (res.ok) {
+          const stats = await res.json();
+          const active = stats.filter(t => t.count > 0).map(t => t.topic.toLowerCase());
+          setCategories(['all', ...active]);
+        }
+      } catch (e) {
+        console.error("Failed to fetch topics", e);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleVote = async (id, targetVote) => {
     if (!userId) {
@@ -129,7 +152,7 @@ export default function GlobalNews() {
       <div className="glass-panel" style={{ position: 'sticky', top: '20px' }}>
         <h3 style={{marginTop: 0, marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '10px'}}>Browse Topics</h3>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {['all', 'tech', 'ai', 'politics', 'geopolitics', 'gaming'].map(cat => (
+          {categories.map(cat => (
             <li key={cat}>
               <button 
                 onClick={() => setActiveCategory(cat)}
