@@ -14,7 +14,6 @@ Instead of manually checking multiple websites, users input "Topics" they care a
 ## 🔗 Live Demo
 
 **Frontend URL:** https://ainewsaggregator-production-3ff3.up.railway.app
-*(Note: Replace with your actual live Railway URL)*
 
 ---
 ## ✨ Key Features
