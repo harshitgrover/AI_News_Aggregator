@@ -45,6 +45,13 @@ async def run_daily_cron():
         db = SessionLocal()
         try:
             print("RUNNING AUTOMATED DAILY CRON JOB!")
+            
+            # Clear articles older than 3 days to keep feed fresh
+            cutoff_date = datetime.utcnow() - timedelta(days=3)
+            deleted_count = db.query(models.Article).filter(models.Article.created_at < cutoff_date).delete()
+            db.commit()
+            print(f"Cleared {deleted_count} articles older than 3 days.")
+            
             profiles = db.query(models.Profile).all()
             from app.services.scrapers.rss_scraper import scrape_all_sources
             from app.services.ai_engine import filter_and_rank_by_topic, generate_newsletter_with_llm

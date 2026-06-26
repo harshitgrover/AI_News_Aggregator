@@ -205,7 +205,7 @@ export default function GlobalNews() {
                 <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', gap: '10px' }}>
                   <span>{article.sources?.name || 'News Source'}</span>
                   <span style={{ color: 'var(--primary)' }}>&bull; {article.sources?.category}</span>
-                  <span style={{ color: '#94a3b8' }}>&bull; {new Date(article.created_at + 'Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  <span style={{ color: '#94a3b8' }}>&bull; {new Date(article.created_at + (article.created_at.endsWith('Z') || article.created_at.includes('+') ? '' : 'Z')).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
                 </div>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem', lineHeight: '1.4' }}>
                   <a href={article.link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: '#0f172a' }}>{article.title}</a>
