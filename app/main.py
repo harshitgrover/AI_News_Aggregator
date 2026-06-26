@@ -15,13 +15,16 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-allow_origins = [frontend_url]
-if frontend_url != "http://localhost:5173":
-    allow_origins.append("http://localhost:5173")
+allow_origins = [
+    frontend_url,
+    "http://localhost:5173",
+    "https://ainewsaggregator-production-3ff3.up.railway.app"
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
+    allow_origin_regex=r"https://.*\.up\.railway\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
