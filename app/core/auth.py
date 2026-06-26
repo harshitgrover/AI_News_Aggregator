@@ -25,7 +25,12 @@ def verify_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
         if alg == "ES256" or alg == "RS256":
             # Supabase upgraded to asymmetric keys! We must fetch the public key from their JWKS endpoint.
             db_url = os.environ.get("SUPABASE_DATABASE_URL", "")
-            project_id = db_url.split("@db.")[1].split(".supabase.co")[0]
+            if "@db." in db_url:
+                project_id = db_url.split("@db.")[1].split(".supabase.co")[0]
+            elif "postgres." in db_url:
+                project_id = db_url.split("postgres.")[1].split(":")[0]
+            else:
+                project_id = ""
             jwks_url = f"https://{project_id}.supabase.co/auth/v1/.well-known/jwks.json"
             
             jwks_client = jwt.PyJWKClient(jwks_url)
