@@ -33,13 +33,13 @@ app.add_middleware(
 async def run_daily_cron():
     while True:
         now = datetime.utcnow()
-        # 3:26 PM IST is 9:56 AM UTC
-        target = now.replace(hour=9, minute=56, second=0, microsecond=0)
+        # 11:30 PM IST is 18:00 UTC
+        target = now.replace(hour=18, minute=0, second=0, microsecond=0)
         if now >= target:
             target += timedelta(days=1)
             
         wait_seconds = (target - now).total_seconds()
-        print(f"Daily cron waiting {wait_seconds} seconds until 3:26 PM IST (9:56 AM UTC)...")
+        print(f"Daily cron waiting {wait_seconds} seconds until 11:30 PM IST (18:00 UTC)...")
         await asyncio.sleep(wait_seconds)
         
         # Execute Daily Emails
