@@ -124,12 +124,14 @@ def test_mail_sync():
         return {"status": "error", "message": "RESEND_API_KEY is not set in environment variables!"}
         
     try:
+        admin_email = os.environ.get("ADMIN_EMAIL", os.environ.get("SENDER_EMAIL", "atharvconsul45@gmail.com"))
+        
         # Test Resend API
         params = {
             "from": "AI News <onboarding@resend.dev>",
-            "to": ["atharvconsul45@gmail.com"],
+            "to": [admin_email],
             "subject": "Test from Railway (Resend)",
-            "html": "<p>Testing Resend API from Railway</p>"
+            "html": f"<p>Testing Resend API from Railway to {admin_email}</p>"
         }
         resend.Emails.send(params)
             
