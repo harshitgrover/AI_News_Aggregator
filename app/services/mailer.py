@@ -26,8 +26,10 @@ def send_newsletter(recipient_email, subject, html_content):
     
     try:
         print(f"Connecting to Gmail SMTP to send email to {recipient_email}...")
-        # Connect to Gmail's SMTP server
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        # Connect to Gmail's SMTP server via TLS (Port 587)
+        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
             smtp.login(sender_email, sender_password)
             smtp.send_message(msg)
         print("Email sent successfully!")

@@ -114,18 +114,23 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
 
 @router.get("/api/test_mail")
 def test_mail_sync():
+    import traceback
+    import smtplib
     import os
-    keys = list(os.environ.keys())
+    
     sender_email = os.environ.get("SENDER_EMAIL")
     sender_pass = os.environ.get("SENDER_PASSWORD")
     
-    return {
-        "status": "env_check",
-        "has_sender_email": sender_email is not None,
-        "has_sender_password": sender_pass is not None,
-        "sender_email_value": sender_email,
-        "all_keys": keys
-    }
+    try:
+        # Directly test SMTP port 587
+        with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(sender_email, sender_pass)
+            
+        return {"status": "success", "message": f"Successfully connected and authenticated to Gmail SMTP on Port 587 using {sender_email}"}
+    except Exception as e:
+        return {"status": "error", "message": f"SMTP Connection Failed: {str(e)}", "traceback": traceback.format_exc()}
 
 @router.get("/api/health")
 def health_check():
