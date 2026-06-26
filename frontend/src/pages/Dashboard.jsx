@@ -28,7 +28,7 @@ export default function Dashboard() {
     if (sourcesData) setSources(sourcesData);
     
     // Fetch Global Stats for Graph
-    const res = await fetch('http://localhost:8000/api/topics/performance');
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/topics/performance`);
     if (res.ok) setTopicStats(await res.json());
   };
 
@@ -60,7 +60,7 @@ export default function Dashboard() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not logged in");
 
-      const res = await fetch('http://localhost:8000/api/generate', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`

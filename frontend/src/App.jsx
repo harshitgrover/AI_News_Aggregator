@@ -14,7 +14,7 @@ function App() {
   useEffect(() => {
     const syncProfile = async (session) => {
       if (session) {
-        await fetch('http://localhost:8000/api/profiles/sync', {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/profiles/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
           body: JSON.stringify({ email: session.user.email })

@@ -23,7 +23,7 @@ export default function Comments({ articleId }) {
   }, [articleId]);
 
   const fetchComments = async () => {
-    const res = await fetch(`http://localhost:8000/api/articles/${articleId}/comments`);
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/articles/${articleId}/comments`);
     if (res.ok) {
       setComments(await res.json());
     }
@@ -31,7 +31,7 @@ export default function Comments({ articleId }) {
 
   const fetchUserVotes = async (user) => {
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`http://localhost:8000/api/articles/${articleId}/comment_votes`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/articles/${articleId}/comment_votes`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` }
     });
     if (res.ok) {
@@ -46,7 +46,7 @@ export default function Comments({ articleId }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const res = await fetch(`http://localhost:8000/api/articles/${articleId}/comments`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/articles/${articleId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function Comments({ articleId }) {
   const deleteComment = async (id) => {
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`http://localhost:8000/api/comments/${id}`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/comments/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${session.access_token}` }
     });
@@ -82,7 +82,7 @@ export default function Comments({ articleId }) {
 
   const saveEdit = async (id) => {
     const { data: { session } } = await supabase.auth.getSession();
-    const res = await fetch(`http://localhost:8000/api/comments/${id}`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/comments/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export default function Comments({ articleId }) {
     }));
 
     const { data: { session } } = await supabase.auth.getSession();
-    await fetch(`http://localhost:8000/api/comments/${commentId}/vote`, {
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/comments/${commentId}/vote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

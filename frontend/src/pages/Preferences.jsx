@@ -30,7 +30,7 @@ export default function Preferences() {
     if (sourcesData) setSources(sourcesData);
     
     // Fetch Community Recommendations
-    const res = await fetch('http://localhost:8000/api/community/sources');
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/community/sources`);
     if (res.ok) setPopularSources(await res.json());
   };
 
@@ -87,7 +87,7 @@ export default function Preferences() {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('http://localhost:8000/api/generate', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });

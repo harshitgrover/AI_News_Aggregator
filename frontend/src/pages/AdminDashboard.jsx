@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   };
 
   const fetchTopicStats = async () => {
-    const res = await fetch('http://localhost:8000/api/topics/performance');
+    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/topics/performance`);
     if (res.ok) setTopicStats(await res.json());
   };
 
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       // Send the new source directly to the Python Backend so it can save and instantly auto-scrape!
-      const res = await fetch('http://localhost:8000/api/admin/sources', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/admin/sources`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('http://localhost:8000/api/admin/scrape', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/admin/scrape`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });

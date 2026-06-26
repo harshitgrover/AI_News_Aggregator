@@ -4,6 +4,7 @@ from sqlalchemy import text
 from app.models import models
 from app.core.database import engine, SessionLocal
 from dotenv import load_dotenv
+import os
 import asyncio
 from datetime import datetime, timedelta
 from app.api.routes import router
@@ -13,9 +14,14 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+allow_origins = [frontend_url]
+if frontend_url != "http://localhost:5173":
+    allow_origins.append("http://localhost:5173")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
