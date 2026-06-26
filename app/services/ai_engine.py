@@ -120,22 +120,21 @@ def generate_newsletter_with_llm(ranked_clusters):
     }
     """
     
-    print("Querying Gemini LLM for Structured JSON...")
-    response = client.models.generate_content(
-        model='gemini-3.1-flash-lite',
-        contents=context,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=0.7,
-            response_mime_type="application/json",
-        ),
-    )
-    
     import json
     try:
+        print("Querying Gemini LLM for Structured JSON...")
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=context,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.7,
+                response_mime_type="application/json",
+            ),
+        )
         data = json.loads(response.text)
     except Exception as e:
-        print("Failed to parse JSON from LLM:", e)
+        print("Failed to call LLM or parse JSON:", e)
         data = {"overall_summary": "Could not generate summary.", "articles": []}
         
     # Python HTML Templating (100% Deterministic!)
