@@ -57,8 +57,11 @@ def verify_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
 def verify_admin(user = Depends(verify_user)):
     """
     RBAC Middleware: Ensures the authenticated user is an admin.
-    (We can set custom claims in Supabase, or check our own database)
     """
-    # For now, we will assume standard authenticated users are not admins unless specified
-    # In a real app, you would check the database or the JWT user_metadata for an admin flag.
+    admin_email = os.environ.get("ADMIN_EMAIL", "atharvconsul@gmail.com")
+    user_email = user.get("email")
+    
+    if user_email != admin_email:
+        raise HTTPException(status_code=403, detail="Forbidden: Admin access required")
+        
     return user
