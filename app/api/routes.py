@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 from app.models import models
-from app.core.database import get_db
+from app.core.database import get_db, SessionLocal
 from app.core.auth import verify_user
 from app.services.scrapers.rss_scraper import scrape_all_sources, scrape_single_source
 from app.services.ai_engine import filter_and_rank_by_topic, generate_newsletter_with_llm
@@ -72,8 +72,25 @@ def cast_vote(article_id: int, vote: VoteCreate, user: dict = Depends(verify_use
     db.commit()
     return {"status": "success", "upvotes": article.upvotes, "downvotes": article.downvotes}
 
+def background_generate_and_send(user_id: str, user_email: str, topic_keywords: str):
+    db = SessionLocal()
+    try:
+        all_articles = scrape_all_sources(db, user_id=user_id)
+        ranked_clusters = filter_and_rank_by_topic(all_articles, topic_keywords)
+        newsletter_html = generate_newsletter_with_llm(ranked_clusters)
+        
+        send_newsletter(
+            recipient_email=user_email,
+            subject=f"Your Personalized AI News: {topic_keywords}",
+            html_content=newsletter_html
+        )
+    except Exception as e:
+        print(f"Error generating background newsletter: {e}")
+    finally:
+        db.close()
+
 @router.post("/api/generate")
-def generate_newsletter(user: dict = Depends(verify_user), db: Session = Depends(get_db)):
+def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(verify_user), db: Session = Depends(get_db)):
     user_id = user["sub"]
     user_email = user.get("email", "unknown@example.com")
     
@@ -82,17 +99,9 @@ def generate_newsletter(user: dict = Depends(verify_user), db: Session = Depends
     if not topic_keywords:
         topic_keywords = "Artificial Intelligence"
         
-    all_articles = scrape_all_sources(db, user_id=user_id)
-    ranked_clusters = filter_and_rank_by_topic(all_articles, topic_keywords)
-    newsletter_html = generate_newsletter_with_llm(ranked_clusters)
+    background_tasks.add_task(background_generate_and_send, user_id, user_email, topic_keywords)
     
-    email_success = send_newsletter(
-        recipient_email=user_email,
-        subject=f"Your Personalized AI News: {topic_keywords}",
-        html_content=newsletter_html
-    )
-    
-    return {"status": "success"}
+    return {"status": "success", "message": "Started generating newsletter in background."}
 
 @router.get("/api/health")
 def health_check():
