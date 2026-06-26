@@ -58,7 +58,7 @@ def verify_admin(user = Depends(verify_user)):
     """
     RBAC Middleware: Ensures the authenticated user is an admin.
     """
-    admin_email = os.environ.get("ADMIN_EMAIL", "atharvconsul@gmail.com")
+    admin_email = os.environ.get("ADMIN_EMAIL", "atharvconsul45@gmail.com")
     user_email = user.get("email")
     
     if user_email != admin_email:
