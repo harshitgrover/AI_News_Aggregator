@@ -115,35 +115,27 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
 @router.get("/api/test_mail")
 def test_mail_sync():
     import traceback
-    import resend
     import os
+    from app.services.mailer import send_newsletter
     
-    resend.api_key = os.environ.get("RESEND_API_KEY")
+    admin_email = os.environ.get("SENDER_EMAIL", "temporar388y@gmail.com")
     
-    if not resend.api_key:
-        return {"status": "error", "message": "RESEND_API_KEY is not set in environment variables!"}
-        
     try:
-        admin_email = os.environ.get("ADMIN_EMAIL", os.environ.get("SENDER_EMAIL", "atharvconsul45@gmail.com"))
-        
-        # Test Resend API
-        params = {
-            "from": "AI News <onboarding@resend.dev>",
-            "to": [admin_email],
-            "subject": "Test from Railway (Resend)",
-            "html": f"<p>Testing Resend API from Railway to {admin_email}</p>"
-        }
-        resend.Emails.send(params)
-            
-        return {"status": "success", "message": "Successfully sent test email via Resend API!"}
+        success = send_newsletter(
+            admin_email,
+            "Test Email from AI News Aggregator",
+            "<h2>It Works!</h2><p>Your Brevo email integration is working perfectly.</p>"
+        )
+        if success:
+            return {"status": "success", "message": f"Test email sent to {admin_email} via Brevo!"}
+        else:
+            return {"status": "error", "message": "send_newsletter returned False. Check BREVO_API_KEY and SENDER_EMAIL."}
     except Exception as e:
-        return {"status": "error", "message": f"Resend API Failed: {str(e)}", "traceback": traceback.format_exc()}
+        return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
 
 @router.get("/api/health")
 def health_check():
     return {"status": "ok"}
-
-
 
 @router.get("/api/community/sources")
 def get_popular_community_sources(db: Session = Depends(get_db)):

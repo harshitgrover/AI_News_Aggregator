@@ -10,4 +10,4 @@ google-genai
 python-dotenv
 PyJWT
 psycopg2-binary
-resend
+sib-api-v3-sdk

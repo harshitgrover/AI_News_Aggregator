@@ -108,8 +108,6 @@ def startup_event():
     except Exception:
         db.rollback()
         
-
-        
     db.close()
 
 app.include_router(router)
