@@ -62,13 +62,17 @@ export default function GlobalNews() {
         const scoreA = (a.upvotes || 0) - (a.downvotes || 0);
         const scoreB = (b.upvotes || 0) - (b.downvotes || 0);
         
-        // Age in hours
-        const ageHoursA = (new Date() - new Date(a.created_at)) / (1000 * 60 * 60);
-        const ageHoursB = (new Date() - new Date(b.created_at)) / (1000 * 60 * 60);
+        // Ensure UTC parsing by appending 'Z' and prevent negative ages
+        const ageHoursA = Math.max(0, (new Date() - new Date(a.created_at + 'Z')) / (1000 * 60 * 60));
+        const ageHoursB = Math.max(0, (new Date() - new Date(b.created_at + 'Z')) / (1000 * 60 * 60));
         
         // HackerNews ranking formula: Score / (Age + 2)^1.5
         const rankA = scoreA / Math.pow((ageHoursA + 2), 1.5);
         const rankB = scoreB / Math.pow((ageHoursB + 2), 1.5);
+        
+        // Handle possible NaN values gracefully
+        if (isNaN(rankA)) return 1;
+        if (isNaN(rankB)) return -1;
         
         return rankB - rankA; // Sort descending (highest rank first)
       });
@@ -178,6 +182,7 @@ export default function GlobalNews() {
                 <div style={{ fontSize: '0.85rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '8px', display: 'flex', gap: '10px' }}>
                   <span>{article.sources?.name || 'News Source'}</span>
                   <span style={{ color: 'var(--primary)' }}>&bull; {article.sources?.category}</span>
+                  <span style={{ color: '#94a3b8' }}>&bull; {new Date(article.created_at + 'Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                 </div>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem', lineHeight: '1.4' }}>
                   <a href={article.link} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: '#0f172a' }}>{article.title}</a>
