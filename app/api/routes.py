@@ -115,22 +115,27 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
 @router.get("/api/test_mail")
 def test_mail_sync():
     import traceback
-    import smtplib
+    import resend
     import os
     
-    sender_email = os.environ.get("SENDER_EMAIL")
-    sender_pass = os.environ.get("SENDER_PASSWORD")
+    resend.api_key = os.environ.get("RESEND_API_KEY")
     
+    if not resend.api_key:
+        return {"status": "error", "message": "RESEND_API_KEY is not set in environment variables!"}
+        
     try:
-        # Directly test SMTP port 587
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as smtp:
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.login(sender_email, sender_pass)
+        # Test Resend API
+        params = {
+            "from": "AI News <onboarding@resend.dev>",
+            "to": ["atharvconsul45@gmail.com"],
+            "subject": "Test from Railway (Resend)",
+            "html": "<p>Testing Resend API from Railway</p>"
+        }
+        resend.Emails.send(params)
             
-        return {"status": "success", "message": f"Successfully connected and authenticated to Gmail SMTP on Port 587 using {sender_email}"}
+        return {"status": "success", "message": "Successfully sent test email via Resend API!"}
     except Exception as e:
-        return {"status": "error", "message": f"SMTP Connection Failed: {str(e)}", "traceback": traceback.format_exc()}
+        return {"status": "error", "message": f"Resend API Failed: {str(e)}", "traceback": traceback.format_exc()}
 
 @router.get("/api/health")
 def health_check():
