@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
-import { Rss, Hash, Trash2, Loader2, Play } from 'lucide-react';
+import { Rss, Hash, Trash2, Loader2, Play, Eye, Mail } from 'lucide-react';
 
 export default function Preferences() {
   const [topics, setTopics] = useState([]);
@@ -13,6 +13,8 @@ export default function Preferences() {
   const [topicSearch, setTopicSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [newsletterHtml, setNewsletterHtml] = useState('');
+  const [loadingStep, setLoadingStep] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -85,16 +87,36 @@ export default function Preferences() {
 
   const triggerAI = async () => {
     setLoading(true);
+    setNewsletterHtml('');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
+      if (!session) throw new Error('Not logged in');
+
+      setLoadingStep('🔍 Scraping your news sources...');
+      await new Promise(r => setTimeout(r, 1000));
+      setLoadingStep('🧠 Ranking articles by your topics with AI...');
+      await new Promise(r => setTimeout(r, 1000));
+      setLoadingStep('✍️ Writing your personalized newsletter...');
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/newsletter/preview`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
-      if (res.ok) alert("Success! Your AI Newsletter is generating and will be emailed shortly.");
-      else alert("Error from server. Check backend logs.");
+
+      if (res.ok) {
+        const data = await res.json();
+        setNewsletterHtml(data.html);
+        setLoadingStep('');
+        // Also fire background email send
+        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+      } else {
+        alert('Error from server. Check backend logs.');
+      }
     } catch (e) {
-      alert("Network Error. Is the FastAPI server running on port 8000?");
+      alert('Network Error. Is the FastAPI server running?');
     }
     setLoading(false);
   };
@@ -222,12 +244,38 @@ export default function Preferences() {
 
       <div style={{ marginTop: '40px', padding: '30px', background: 'white', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
         <h3 style={{marginTop: 0}}>Ready to trigger the AI Engine?</h3>
-        <p style={{color: 'var(--text-muted)', marginBottom: '24px'}}>This will scrape all active sources, filter by your topics, and email you a customized newsletter.</p>
-        <button onClick={triggerAI} className="btn-primary" disabled={loading} style={{ padding: '16px 40px', fontSize: '1.2rem', margin: '0 auto' }}>
-          {loading ? <Loader2 className="spinner" /> : <Play />}
-          {loading ? 'Synthesizing News...' : 'Generate AI Newsletter'}
+        <p style={{color: 'var(--text-muted)', marginBottom: '24px'}}>This will scrape all active sources, filter by your topics, and generate your newsletter right here.</p>
+        <button onClick={triggerAI} className="btn-primary" disabled={loading} style={{ padding: '16px 40px', fontSize: '1.2rem', margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '10px', opacity: loading ? 0.8 : 1 }}>
+          {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Play />}
+          {loading ? 'Generating Newsletter...' : 'Generate AI Newsletter'}
         </button>
+        {loading && loadingStep && (
+          <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>{loadingStep}</p>
+        )}
       </div>
+
+      {/* Newsletter Preview */}
+      {newsletterHtml && (
+        <div style={{ marginTop: '40px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--border)', paddingBottom: '12px' }}>
+            <Eye size={22} color="var(--primary)" />
+            <h2 style={{ margin: 0, color: 'var(--primary)' }}>Your Newsletter Preview</h2>
+            <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(37,99,235,0.1)', padding: '4px 10px', borderRadius: '20px' }}>
+              <Mail size={12} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+              Also sent to your email
+            </span>
+          </div>
+          <div
+            className="glass-panel"
+            style={{ padding: '30px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+            dangerouslySetInnerHTML={{ __html: newsletterHtml }}
+          />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
