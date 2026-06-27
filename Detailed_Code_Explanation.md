@@ -267,7 +267,7 @@ Think of a database as a collection of Excel spreadsheets, linked by ID columns:
 
 ---
 
-## Part 10: Interview Q&A
+## Part 10: FAQs
 
 **Q: "Why did you switch from `sentence-transformers` to the Gemini Embeddings API?"**
 > "The original local model (`all-MiniLM-L6-v2`) required loading PyTorch, which consumed over 500MB of RAM at startup. Our Railway deployment has a 512MB limit, so the backend was crashing with an OOMKilled error. I replaced it with the Gemini Embeddings API, which offloads the computation to Google's servers via a simple HTTPS call. This reduced our startup memory by over 80%, eliminated crashes, and actually produces higher-quality 3072-dimensional embeddings."
