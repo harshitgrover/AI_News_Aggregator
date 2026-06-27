@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Radio, Settings, LogOut, ShieldAlert } from 'lucide-react';
+import { Radio, Settings, LogOut, ShieldAlert, User } from 'lucide-react';
 import { supabase } from '../supabase';
 
 export default function Navbar() {
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [avatarLetter, setAvatarLetter] = useState('?');
   
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user && user.email === import.meta.env.VITE_ADMIN_EMAIL) {
-        setIsAdmin(true);
+      if (user) {
+        if (user.email === import.meta.env.VITE_ADMIN_EMAIL) setIsAdmin(true);
+        setAvatarLetter(user.email?.[0]?.toUpperCase() || '?');
       }
     });
   }, []);
@@ -30,6 +32,28 @@ export default function Navbar() {
             <ShieldAlert size={18} style={{verticalAlign: 'middle', marginRight: '4px'}}/> Admin
           </Link>
         )}
+        <Link
+          to="/profile"
+          title="My Profile"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '7px', textDecoration: 'none',
+            padding: '6px 14px', borderRadius: '20px',
+            background: location.pathname === '/profile' ? 'var(--primary)' : 'rgba(79,70,229,0.1)',
+            color: location.pathname === '/profile' ? 'white' : '#4f46e5',
+            fontWeight: '600', fontSize: '0.9rem', transition: 'all 0.2s',
+            border: '1px solid rgba(79,70,229,0.2)',
+          }}
+        >
+          <div style={{
+            width: '22px', height: '22px', borderRadius: '50%',
+            background: location.pathname === '/profile' ? 'rgba(255,255,255,0.25)' : 'linear-gradient(135deg,#4f46e5,#3b82f6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.75rem', fontWeight: 'bold', color: 'white', flexShrink: 0
+          }}>
+            {avatarLetter}
+          </div>
+          Profile
+        </Link>
         <button onClick={() => supabase.auth.signOut()} className="btn-danger" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '10px' }}>
           <LogOut size={16} /> Sign Out
         </button>

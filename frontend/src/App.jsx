@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import GlobalNews from './pages/GlobalNews';
 import Preferences from './pages/Preferences';
 import AdminDashboard from './pages/AdminDashboard';
+import Profile from './pages/Profile';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -59,6 +60,10 @@ function App() {
         <Route 
           path="/admin" 
           element={session && session.user.email === import.meta.env.VITE_ADMIN_EMAIL ? <AdminDashboard /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/profile" 
+          element={session ? <Profile /> : <Navigate to="/login" />} 
         />
       </Routes>
     </BrowserRouter>
