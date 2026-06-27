@@ -3,26 +3,59 @@ import feedparser
 from bs4 import BeautifulSoup
 from app.models.models import Source, Article, UserSource
 from urllib.parse import urljoin
+import os
+
+def expand_summary(title, short_summary):
+    """
+    Uses Gemini to generate a proper ~60 word summary when the RSS feed
+    provides less than 50 words. Falls back to original if API call fails.
+    """
+    if len(short_summary.split()) >= 50:
+        return short_summary
+    try:
+        from google import genai
+        client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        prompt = (
+            f"Write a concise, factual 2-3 sentence summary (around 60 words) for this news article. "
+            f"Only return the summary text, nothing else.\n\n"
+            f"Title: {title}\n"
+            f"Available description: {short_summary}"
+        )
+        response = client.models.generate_content(
+            model='gemini-3.1-flash-lite',
+            contents=prompt,
+        )
+        expanded = response.text.strip()
+        if expanded:
+            return expanded
+    except Exception as e:
+        print(f"Summary expansion failed: {e}")
+    return short_summary
 
 def process_rss_entries(entries):
     """Helper to clean up RSS XML data into consistent dictionaries."""
     articles = []
     for entry in entries[:3]:
-        raw_summary = entry.get('description', '') 
+        raw_summary = entry.get('description', '')
         if not raw_summary and 'media_description' in entry:
             raw_summary = entry.media_description
 
         soup = BeautifulSoup(raw_summary, "html.parser")
         clean_summary = soup.get_text(separator=" ").strip()
-        if len(clean_summary) > 400:
-            clean_summary = clean_summary[:397] + "..."
-            
+        if len(clean_summary) > 500:
+            clean_summary = clean_summary[:497] + "..."
+
+        title = entry.get('title', 'Unknown Title')
+        # Expand short summaries using Gemini
+        clean_summary = expand_summary(title, clean_summary)
+
         articles.append({
-            'title': entry.get('title', 'Unknown Title'),
+            'title': title,
             'link': entry.get('link', ''),
             'summary': clean_summary
         })
     return articles
+
 
 def discover_and_parse(url, headers):
     """
