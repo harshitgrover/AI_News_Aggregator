@@ -121,7 +121,10 @@ def scrape_single_source(db, source_id, url):
                 source_id=source_id 
             )
             db.add(new_art)
-            db.commit()
+        else:
+            # Refresh summary in case it was previously truncated short
+            existing.summary = art['summary']
+        db.commit()
     print(f"Finished Auto-Scrape for {url}")
 
 def scrape_all_sources(db, user_id=None):
@@ -150,7 +153,10 @@ def scrape_all_sources(db, user_id=None):
                     source_id=source.id 
                 )
                 db.add(new_art)
-                db.commit()
+            else:
+                # Refresh summary in case it was previously truncated short
+                existing.summary = art['summary']
+            db.commit()
                 
     # Fetch ALL saved articles from DB for the global sources
     all_saved_articles = db.query(Article).order_by(Article.created_at.desc()).limit(50).all()
