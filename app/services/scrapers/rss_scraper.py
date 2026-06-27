@@ -14,8 +14,8 @@ def process_rss_entries(entries):
 
         soup = BeautifulSoup(raw_summary, "html.parser")
         clean_summary = soup.get_text(separator=" ").strip()
-        if len(clean_summary) > 150:
-            clean_summary = clean_summary[:147] + "..."
+        if len(clean_summary) > 400:
+            clean_summary = clean_summary[:397] + "..."
             
         articles.append({
             'title': entry.get('title', 'Unknown Title'),
@@ -87,7 +87,7 @@ def discover_and_parse(url, headers):
                         
                     desc_text = meta_desc['content'].strip() if meta_desc and meta_desc.get('content') else "Generic article scraped from HTML."
                     
-                    if len(desc_text) > 150: desc_text = desc_text[:147] + "..."
+                    if len(desc_text) > 400: desc_text = desc_text[:397] + "..."
                     
                     articles.append({
                         'title': title_text,

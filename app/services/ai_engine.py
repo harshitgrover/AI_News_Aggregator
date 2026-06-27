@@ -1,14 +1,18 @@
-from sentence_transformers import SentenceTransformer
 import numpy as np
 import os
 
-
-# 1. Load the free, open-source AI Model into memory for embeddings.
-print("Loading Embedding Model...")
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
+# Use the lightweight Gemini Embeddings API instead of loading heavy local ML models.
+# This eliminates the PyTorch / sentence-transformers OOM crash on Railway.
 def get_embedding(text):
-    return model.encode(text)
+    """Get text embedding using Gemini API — no local ML model needed."""
+    from google import genai
+    gemini_api_key = os.environ.get("GEMINI_API_KEY")
+    client = genai.Client(api_key=gemini_api_key)
+    response = client.models.embed_content(
+        model='gemini-embedding-001',
+        contents=text,
+    )
+    return np.array(response.embeddings[0].values)
 
 def calculate_cosine_similarity(vector_a, vector_b):
     dot_product = np.dot(vector_a, vector_b)
