@@ -4,43 +4,57 @@
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![React](https://img.shields.io/badge/react-18.x-cyan.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
+![Deployed on Railway](https://img.shields.io/badge/deployed-Railway-blueviolet.svg)
 
-A fully automated, full-stack AI News Aggregator that curates, filters, and summarizes the internet for you. 
+A fully automated, full-stack AI News Aggregator that curates, filters, summarizes, and delivers personalized news — right to your inbox and directly on the web.
 
-Instead of manually checking multiple websites, users input "Topics" they care about. Every morning, the system autonomously scrapes hundreds of global news sources, uses a local Machine Learning model to mathematically filter out irrelevant articles, passes the verified news to Google's Gemini LLM to write a cohesive summary, and emails it to the user. It also features a Reddit-style web frontend where users can read global news, upvote/downvote articles, and comment.
+Users input **Topics** they care about (e.g., "Artificial Intelligence", "Geopolitics"). Every night at **11:30 PM IST**, the system autonomously scrapes hundreds of global news sources, uses the **Gemini Embeddings API** to mathematically filter irrelevant articles via Cosine Similarity, passes the top 5 verified news clusters to **Google Gemini** to write a cohesive HTML newsletter, and emails it to every user. It also features a **Reddit-style web community** where users can read global news, vote, comment, and preview their newsletter live on the page.
 
 ---
 
 ## 🔗 Live Demo
 
-**Frontend URL:** https://ainewsaggregator-production-3ff3.up.railway.app
+**Frontend:** https://ainewsaggregator-production-3ff3.up.railway.app
 
 ---
+
 ## ✨ Key Features
 
-- **🤖 AI-Powered Filtering:** Uses local HuggingFace `sentence-transformers` (`all-MiniLM-L6-v2`) to calculate Cosine Similarity between user topics and scraped articles, ensuring extreme relevance without keyword-matching flaws.
-- **📰 Autonomous Web Scraper:** Highly resilient 3-tier fallback scraper (Direct RSS -> Hidden Link Auto-Discovery -> HTML Heuristic Web Crawler).
-- **✍️ LLM Summarization:** Integrates with Google Gemini (`gemini-3.1-flash-lite`) to digest hundreds of articles and write professional, structured newsletter summaries.
-- **✉️ Automated Delivery:** Background `asyncio` cron jobs wake up daily at 8:00 AM to process news and dispatch HTML emails via SMTP.
-- **🌐 Reddit-Style Frontend:** A beautiful React/Vite single-page application allowing users to read the global feed, upvote/downvote articles, and comment.
-- **🔒 Secure Authentication:** Powered by Supabase Auth with custom JWT validation middleware and Role-Based Access Control (RBAC).
+| Feature | Description |
+|---|---|
+| 🤖 **AI-Powered Filtering** | Uses Gemini `gemini-embedding-001` to convert article text into vector embeddings and calculates Cosine Similarity against user topics — mathematically guarantees relevance |
+| 📰 **Autonomous 3-Tier Scraper** | Direct RSS → Hidden RSS Auto-Discovery → Heuristic HTML Crawler fallback chain |
+| ✍️ **Gemini Summary Expansion** | Short RSS descriptions (< 50 words) are automatically expanded to full 60-word summaries using `gemini-3.1-flash-lite` |
+| 📧 **Automated Daily Delivery** | `asyncio` cron job fires at 11:30 PM IST every day, generating and emailing personalized newsletters to all users |
+| 🖥️ **In-Page Newsletter Preview** | Clicking "Generate Newsletter" runs the full pipeline synchronously and renders the result directly on the page — no need to check email |
+| 🌐 **Reddit-Style Community Feed** | React/Vite SPA with live article feed, upvote/downvote with HackerNews ranking formula, and comment threads |
+| 👤 **User Profile Page** | Shows username, email, karma score, total comments/votes, recent comment history, and tracked topics |
+| 🔒 **Secure Auth + RBAC** | Supabase Auth with custom JWT validation; Admin-only routes protected on both frontend and backend |
+| ♻️ **Realtime Feed** | Supabase Realtime auto-refreshes the global feed when new articles are scraped |
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Backend (The Kitchen)
-* **Framework:** [FastAPI](https://fastapi.tiangolo.com/) + Uvicorn
-* **Database & ORM:** PostgreSQL + SQLAlchemy + Psycopg2
-* **Scraping:** Requests, BeautifulSoup4, Feedparser
-* **AI Models:** Sentence-Transformers, Numpy, Google GenAI SDK
-* **Security:** PyJWT
+### Backend
+| Library | Purpose |
+|---|---|
+| `fastapi` + `uvicorn` | Web framework & ASGI server |
+| `sqlalchemy` + `psycopg2-binary` | ORM & PostgreSQL driver |
+| `requests`, `beautifulsoup4`, `feedparser` | 3-tier web scraper |
+| `google-genai` | Gemini embeddings, summarization & newsletter LLM |
+| `numpy` | Cosine Similarity vector math |
+| `PyJWT` | JWT token decoding & verification |
+| `sib-api-v3-sdk` | Brevo transactional email API |
+| `python-dotenv` | Secure environment variable loading |
 
-### Frontend (The Dining Room)
-* **Framework:** [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-* **Routing:** React Router v6
-* **Authentication:** Supabase JS SDK
-* **Icons:** Lucide React
+### Frontend
+| Library | Purpose |
+|---|---|
+| `react` + `vite` | Component-based UI & fast build tool |
+| `react-router-dom` | Client-side routing (SPA navigation) |
+| `@supabase/supabase-js` | Auth, Realtime, and direct DB queries |
+| `lucide-react` | UI icon set |
 
 ---
 
@@ -48,73 +62,117 @@ Instead of manually checking multiple websites, users input "Topics" they care a
 
 ```text
 AI_News/
-├── app/                  # Backend Python Code
-│   ├── api/              # FastAPI Routes (endpoints)
-│   ├── core/             # Database connection & JWT Security
-│   ├── models/           # SQLAlchemy Database Models
-│   └── services/         # Scrapers, AI Engine, and Mailer logic
-├── frontend/             # Frontend React Code
-│   ├── src/              # React Components & Pages
-│   └── package.json      # NPM dependencies
-├── main.py               # Backend Entrypoint & Cron Job
-└── requirements.txt      # Python dependencies
+├── app/
+│   ├── api/
+│   │   └── routes.py          # All FastAPI endpoints
+│   ├── core/
+│   │   ├── auth.py            # JWT verification middleware
+│   │   └── database.py        # SQLAlchemy engine & session
+│   ├── models/
+│   │   └── models.py          # DB table definitions (Article, Topic, Vote, Comment...)
+│   └── services/
+│       ├── ai_engine.py       # Gemini embeddings, cosine similarity, LLM newsletter
+│       ├── mailer.py          # Brevo email delivery
+│       └── scrapers/
+│           └── rss_scraper.py # 3-tier scraper + Gemini summary expansion
+├── frontend/
+│   └── src/
+│       ├── pages/
+│       │   ├── GlobalNews.jsx   # Reddit-style community feed
+│       │   ├── Preferences.jsx  # Topics, sources, newsletter generator
+│       │   ├── Profile.jsx      # User profile, stats, karma
+│       │   └── AdminDashboard.jsx
+│       └── components/
+│           ├── Navbar.jsx       # Navigation with profile avatar
+│           └── Comments.jsx     # Comment threads
+├── main.py                    # App entrypoint, CORS, daily cron job
+└── requirements.txt
 ```
 
 ---
 
-## 🚀 Setup & Installation
+## 🚀 Setup & Local Development
 
 ### Prerequisites
-* Python 3.10+
-* Node.js v18+
-* A Supabase Project (for Auth and PostgreSQL)
-* A Google Gemini API Key
+- Python 3.10+
+- Node.js v18+
+- A [Supabase](https://supabase.com) Project (for Auth + PostgreSQL)
+- A [Google Gemini](https://aistudio.google.com/app/apikey) API Key
+- A [Brevo](https://brevo.com) account (for email delivery)
 
-### 1. Environment Variables
-You need to set up your `.env` file in the root directory. Use `.env.template` as a guide:
-```env
-SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
-SUPABASE_JWT_SECRET=your_jwt_secret
-GEMINI_API_KEY=your_gemini_api_key
-SENDER_EMAIL=your_email@gmail.com
-SENDER_PASSWORD=your_app_password
+### 1. Clone & Configure
+```bash
+git clone https://github.com/harshitgrover/AI_News_Aggregator.git
+cd AI_News_Aggregator
 ```
 
-*(Note: For the frontend, create a separate `.env` inside the `/frontend` folder containing your `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL`).*
+Copy `.env.template` to `.env` and fill in your keys:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+BREVO_API_KEY=your_brevo_api_key
+SENDER_EMAIL=your_sender@email.com
+SUPABASE_DATABASE_URL=postgresql://postgres:[password]@db.[ref].supabase.co:5432/postgres
+SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+```
+
+For the frontend, create `frontend/.env`:
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_API_URL=http://localhost:8000
+VITE_ADMIN_EMAIL=your_admin@email.com
+```
 
 ### 2. Backend Setup
-Open a terminal in the root directory:
 ```bash
-# Create a virtual environment
 python3 -m venv venv
+source venv/bin/activate       # Mac/Linux
+# venv\Scripts\activate        # Windows
 
-# Activate the virtual environment
-source venv/bin/activate  # On Mac/Linux
-venv\Scripts\activate     # On Windows
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Start the FastAPI server (Runs on http://localhost:8000)
+# Start FastAPI server at http://localhost:8000
 uvicorn app.main:app --reload
 ```
-*(Note: SQLAlchemy will automatically create all required PostgreSQL tables on the first run).*
+> SQLAlchemy auto-creates all DB tables on the first run.
 
 ### 3. Frontend Setup
-Open a second terminal and navigate to the `frontend` folder:
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start the React development server (Runs on http://localhost:5173)
-npm run dev
+npm run dev                    # Starts at http://localhost:5173
 ```
 
 ---
 
-## 📖 Complete Documentation
-For an exhaustive, beginner-friendly deep dive into exactly how the code works, the architecture, and the specific purpose of every library used, please read the included [Detailed_Code_Explanation.md](./Detailed_Code_Explanation.md). This file serves as the ultimate master-guide and interview prep document for the project!
+## 🔄 How the Newsletter Pipeline Works
+
+```
+[User clicks "Generate Newsletter"]
+        ↓
+1. scrape_all_sources()
+   → Scrapes all global RSS feeds (3-tier fallback)
+   → Expands short summaries using Gemini
+
+2. filter_and_rank_by_topic()
+   → Embeds user topics via gemini-embedding-001
+   → Embeds every article via gemini-embedding-001
+   → Calculates Cosine Similarity for each article
+   → Clusters similar articles (confidence scoring)
+   → Returns top 5 ranked clusters
+
+3. generate_newsletter_with_llm()
+   → Sends clusters to gemini-3.1-flash-lite
+   → Gets back structured JSON with overall_summary + per-article summaries
+   → Assembles final HTML newsletter
+
+4. Response: HTML rendered on-page + email sent in background
+```
+
+---
+
+## 📖 Full Code Explanation
+
+For a comprehensive, beginner-friendly deep-dive into every file, design decision, and interview question, see [Detailed_Code_Explanation.md](./Detailed_Code_Explanation.md).
 
 ---
