@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabase';
-import { Rss, Hash, Play, LogOut, Radio } from 'lucide-react';
+import { Rss, Hash, Play, LogOut, Radio, Loader2, Mail, Eye } from 'lucide-react';
 
 export default function Dashboard() {
   const [topics, setTopics] = useState([]);
@@ -10,6 +10,8 @@ export default function Dashboard() {
   const [newSource, setNewSource] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [newsletterHtml, setNewsletterHtml] = useState('');
+  const [loadingStep, setLoadingStep] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -21,13 +23,11 @@ export default function Dashboard() {
   }, []);
 
   const fetchUserData = async (userId) => {
-    // Look how easy Supabase makes this! No FastAPI routes needed for CRUD!
     const { data: topicsData } = await supabase.from('topics').select('*').eq('user_id', userId);
     const { data: sourcesData } = await supabase.from('user_sources').select('*').eq('user_id', userId);
     if (topicsData) setTopics(topicsData);
     if (sourcesData) setSources(sourcesData);
     
-    // Fetch Global Stats for Graph
     const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/topics/performance`);
     if (res.ok) setTopicStats(await res.json());
   };
@@ -56,11 +56,20 @@ export default function Dashboard() {
 
   const triggerAI = async () => {
     setLoading(true);
+    setNewsletterHtml('');
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not logged in");
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
+      // Step 1: Show what we're doing
+      setLoadingStep('🔍 Scraping your news sources...');
+      await new Promise(r => setTimeout(r, 1000));
+      setLoadingStep('🧠 Ranking articles by your topics with AI...');
+      await new Promise(r => setTimeout(r, 1000));
+      setLoadingStep('✍️ Writing your personalized newsletter...');
+
+      // Call the preview endpoint — runs the full pipeline and returns HTML
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/newsletter/preview`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`
@@ -68,7 +77,15 @@ export default function Dashboard() {
       });
 
       if (res.ok) {
-        alert("AI Generation triggered! The newsletter is on its way to your email.");
+        const data = await res.json();
+        setNewsletterHtml(data.html);
+        setLoadingStep('');
+
+        // Also trigger the background email send
+        fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/generate`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
       } else {
         const err = await res.json();
         alert("Error: " + JSON.stringify(err));
@@ -145,17 +162,49 @@ export default function Dashboard() {
 
       </div>
 
+      {/* Generate Button */}
       <div style={{ marginTop: '40px', textAlign: 'center' }}>
         <button 
           onClick={triggerAI} 
           className="btn-primary" 
           disabled={loading}
-          style={{ padding: '15px 40px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 auto', background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)' }}
+          style={{ padding: '15px 40px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 auto', background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)', opacity: loading ? 0.8 : 1 }}
         >
-          {loading ? <Loader2 className="spinner" /> : <Play />}
-          {loading ? 'Synthesizing News...' : 'Generate My Newsletter Now'}
+          {loading ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Play />}
+          {loading ? 'Generating Newsletter...' : 'Generate My Newsletter Now'}
         </button>
+
+        {/* Loading Steps */}
+        {loading && loadingStep && (
+          <p style={{ marginTop: '16px', color: 'var(--text-muted)', fontSize: '0.95rem', animation: 'fadeIn 0.4s ease' }}>
+            {loadingStep}
+          </p>
+        )}
       </div>
+
+      {/* Newsletter Preview */}
+      {newsletterHtml && (
+        <div style={{ marginTop: '50px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', borderBottom: '2px solid var(--border)', paddingBottom: '12px' }}>
+            <Eye size={22} color="var(--primary)" />
+            <h2 style={{ margin: 0, color: 'var(--primary)' }}>Your Newsletter Preview</h2>
+            <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(37,99,235,0.1)', padding: '4px 10px', borderRadius: '20px' }}>
+              <Mail size={12} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+              Also sent to your email
+            </span>
+          </div>
+          <div
+            className="glass-panel"
+            style={{ padding: '30px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+            dangerouslySetInnerHTML={{ __html: newsletterHtml }}
+          />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }

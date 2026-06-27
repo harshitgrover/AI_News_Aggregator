@@ -112,6 +112,27 @@ def generate_newsletter(background_tasks: BackgroundTasks, user: dict = Depends(
     
     return {"status": "success", "message": "Started generating newsletter in background."}
 
+@router.post("/api/newsletter/preview")
+def preview_newsletter(user: dict = Depends(verify_user), db: Session = Depends(get_db)):
+    """
+    Runs the full newsletter pipeline synchronously and returns the HTML content
+    directly to the frontend for in-page preview. Does NOT send an email.
+    """
+    from app.services.scrapers.rss_scraper import scrape_all_sources
+    from app.services.ai_engine import filter_and_rank_by_topic, generate_newsletter_with_llm
+
+    user_id = user["sub"]
+    user_topics = db.query(models.Topic).filter(models.Topic.user_id == user_id).all()
+    topic_keywords = ", ".join([t.keyword for t in user_topics])
+    if not topic_keywords:
+        topic_keywords = "Artificial Intelligence"
+
+    all_articles = scrape_all_sources(db, user_id=user_id)
+    ranked_clusters = filter_and_rank_by_topic(all_articles, topic_keywords)
+    newsletter_html = generate_newsletter_with_llm(ranked_clusters)
+
+    return {"status": "success", "html": newsletter_html}
+
 @router.get("/api/test_mail")
 def test_mail_sync():
     import traceback
